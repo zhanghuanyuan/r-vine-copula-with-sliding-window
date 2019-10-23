@@ -1,0 +1,44 @@
+panduan<-function(x){
+  if(x<=0.01){
+    a="***"
+  }else if(x<=0.05){
+    a="**"
+  }else if(x<=0.1){
+    a="*"
+  }else{
+    a=""
+  }
+  return(a)
+}
+
+summaries<-function(data,data_set){
+  summ<-matrix(data=NA,nrow=data_set+1,ncol=10)
+  summ[1,]<-c("name","mean","max","min","sd","skewness","kurtosis","ks","adf","Arch-LM")
+  for(i in 2:(data_set+1)){
+  #name
+  summ[i,1]<-i-1
+  #data
+  data_1<-as.numeric(c(unlist(data[,(i-1)])))
+  #mean,max,min,sd
+  a<-as.numeric(summary(data_1))
+  summ[i,2]<-a[4]
+  summ[i,3]<-a[6]
+  summ[i,4]<-a[1]
+  summ[i,5]<-sd(data_1)
+  #skewness&kurtosis
+  summ[i,6]<-skewness(data_1)
+  summ[i,7]<-kurtosis(data_1)
+  #ks_test&adf_test
+  ks_result_test<-ks.test(jitter(data_1),"pnorm")
+  adf_result_test<-adf.test(data_1)
+  summ[i,8]<-paste(round(ks_result_test[["statistic"]],3),panduan(ks_result_test[["p.value"]]))
+  summ[i,9]<-paste(round(adf_result_test[["statistic"]],3),panduan(adf_result_test[["p.value"]]))
+  #ARCH-LM
+  archlm<-ArchTest(data_1,1)
+  summ[i,10]<-paste(round(archlm[["statistic"]],3),panduan(archlm[["p.value"]]))
+}
+return(summ)
+}
+
+summaries(data,data_set)
+write.csv(summ,file="summary.csv")
